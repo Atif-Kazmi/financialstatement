@@ -7,8 +7,8 @@ def generate_financial_statements(trial_balance, mapping):
     trial_balance = trial_balance.rename(columns={'Account': 'Account Name'})
 
     # Convert Account Name to lower case for case insensitive merging
-    trial_balance['Account Name'] = trial_balance['Account Name'].str.lower()
-    mapping['Account Name'] = mapping['Account Name'].str.lower()
+    trial_balance['Account Name'] = trial_balance['Account Name'].astype(str).str.lower()
+    mapping['Account Name'] = mapping['Account Name'].astype(str).str.lower()
 
     # Merge trial balance with mapping on 'Account Name'
     merged_data = pd.merge(
@@ -30,22 +30,25 @@ def generate_financial_statements(trial_balance, mapping):
     if (merged_data['Balance'] == 0).any():
         st.warning("There are zero balances in the merged data.")
 
+    # Convert 'Category' column to string and lower case for case insensitive comparison
+    merged_data['Category'] = merged_data['Category'].astype(str).str.lower()
+
     # Calculate totals for the Income Statement
-    total_revenue = merged_data[merged_data['Category'].str.lower() == 'revenue']['Balance'].sum()
-    cost_of_sales = merged_data[merged_data['Category'].str.lower() == 'cost of sales']['Balance'].sum()
+    total_revenue = merged_data[merged_data['Category'] == 'revenue']['Balance'].sum()
+    cost_of_sales = merged_data[merged_data['Category'] == 'cost of sales']['Balance'].sum()
     gross_profit = total_revenue - cost_of_sales
     
     # Assuming other income/expenses categories are labeled correctly in mapping
-    operating_expenses = merged_data[merged_data['Category'].str.lower() == 'expense']['Balance'].sum()  # General and Administrative
-    other_income = merged_data[merged_data['Category'].str.lower() == 'other income']['Balance'].sum()
-    other_expenses = merged_data[merged_data['Category'].str.lower() == 'other expenses']['Balance'].sum()
+    operating_expenses = merged_data[merged_data['Category'] == 'expense']['Balance'].sum()  # General and Administrative
+    other_income = merged_data[merged_data['Category'] == 'other income']['Balance'].sum()
+    other_expenses = merged_data[merged_data['Category'] == 'other expenses']['Balance'].sum()
 
     net_income = gross_profit + other_income - (operating_expenses + other_expenses)
 
     # Calculate totals for the Balance Sheet
-    total_assets = merged_data[merged_data['Category'].str.lower() == 'asset']['Balance'].sum()
-    total_liabilities = merged_data[merged_data['Category'].str.lower() == 'liability']['Balance'].sum()
-    total_equity = merged_data[merged_data['Category'].str.lower() == 'equity']['Balance'].sum()
+    total_assets = merged_data[merged_data['Category'] == 'asset']['Balance'].sum()
+    total_liabilities = merged_data[merged_data['Category'] == 'liability']['Balance'].sum()
+    total_equity = merged_data[merged_data['Category'] == 'equity']['Balance'].sum()
 
     return {
         "Income Statement": {
