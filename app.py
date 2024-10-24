@@ -5,12 +5,20 @@ import streamlit as st
 def generate_financial_statements(trial_balance):
     # Convert Category to lower case for case insensitive comparisons
     trial_balance['Category'] = trial_balance['Category'].astype(str).str.lower()
+
+    # Convert Balance to absolute values (positive) to flip negative values
+    trial_balance['Balance'] = trial_balance['Balance'].abs()
     
     # Calculate totals for the Income Statement
     total_revenue = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'total revenue')]['Balance'].sum()
     cost_of_sales = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'cost of sales')]['Balance'].sum()
     material_cost = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'material cost')]['Balance'].sum()
     manufacturing_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'manufacturing expenses')]['Balance'].sum()
+    
+    # Calculate gross profit as specified
+    gross_profit = total_revenue - material_cost - manufacturing_expenses
+    
+    # Calculate other costs
     selling_costs = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'selling costs')]['Balance'].sum()
     advertising_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'advertising and publicity')]['Balance'].sum()
     carriage_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'carriage and forwarding expense')]['Balance'].sum()
@@ -20,16 +28,13 @@ def generate_financial_statements(trial_balance):
     other_operating_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating expenses')]['Balance'].sum()
     finance_cost = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'finance cost')]['Balance'].sum()
     
-    # Calculate gross profit
-    gross_profit = total_revenue - (cost_of_sales + material_cost + manufacturing_expenses)
-
     # Total marketing, selling, and distribution costs
     total_marketing_selling_costs = selling_costs + advertising_expenses + carriage_expenses
 
     # Total expenses before operating profit
-    total_expenses_before_profit = (administrative_expenses + impairment_loss + other_operating_expenses)
+    total_expenses_before_profit = administrative_expenses + impairment_loss + other_operating_expenses
 
-    # Calculate net income
+    # Calculate profit before tax
     profit_before_tax = gross_profit - (total_marketing_selling_costs + total_expenses_before_profit + finance_cost)
 
     # Taxation (dummy values as placeholders, adjust as needed)
@@ -41,7 +46,6 @@ def generate_financial_statements(trial_balance):
     return {
         "Income Statement": {
             "Net Sales": total_revenue,
-            "Cost of Sales": cost_of_sales,
             "Material Cost": material_cost,
             "Manufacturing Expenses": manufacturing_expenses,
             "Gross Profit": gross_profit,
