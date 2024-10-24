@@ -3,35 +3,40 @@ import streamlit as st
 
 # Function to generate financial statements
 def generate_financial_statements(trial_balance):
-    # Convert Account Name and Category to lower case for case insensitive comparisons
-    trial_balance['Account'] = trial_balance['Account'].astype(str).str.lower()
+    # Convert Category to lower case for case insensitive comparisons
     trial_balance['Category'] = trial_balance['Category'].astype(str).str.lower()
-
-    # Calculate totals for the Income Statement
-    total_revenue = trial_balance[trial_balance['Category'] == 'revenue']['Balance'].sum()
-    cost_of_sales = trial_balance[trial_balance['Category'] == 'cost of sales']['Balance'].sum()
-    gross_profit = total_revenue - cost_of_sales
     
-    # Assuming other income/expenses categories are labeled correctly in trial balance
-    operating_expenses = trial_balance[trial_balance['Category'] == 'expense']['Balance'].sum()  # General and Administrative
-    other_income = trial_balance[trial_balance['Category'] == 'other income']['Balance'].sum()
-    other_expenses = trial_balance[trial_balance['Category'] == 'other expenses']['Balance'].sum()
+    # Calculate totals for the Income Statement
+    total_revenue = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'total revenue')]['Balance'].sum()
+    other_operating_income = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating income')]['Balance'].sum()
+    share_of_profit = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'share of profit from associates')]['Balance'].sum()
+    impairment_on_investment = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'impairment on investment in associate -')]['Balance'].sum()
+    cost_of_sales = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'cost of sales')]['Balance'].sum()
+    operating_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'manufacturing, selling and administration expenses')]['Balance'].sum()
+    other_operating_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating expenses')]['Balance'].sum()
+    finance_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'finance expenses')]['Balance'].sum()
+    taxation_pnl = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'taxation & pnl')]['Balance'].sum()
+    taxation_oci = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'taxation - oci')]['Balance'].sum()
 
-    net_income = gross_profit + other_income - (operating_expenses + other_expenses)
+    gross_profit = total_revenue - cost_of_sales
+    total_expenses = operating_expenses + other_operating_expenses + finance_expenses + taxation_pnl + taxation_oci
+    net_income = gross_profit + other_operating_income + share_of_profit - total_expenses - impairment_on_investment
 
     # Calculate totals for the Balance Sheet
-    total_assets = trial_balance[trial_balance['Category'] == 'asset']['Balance'].sum()
-    total_liabilities = trial_balance[trial_balance['Category'] == 'liability']['Balance'].sum()
-    total_equity = trial_balance[trial_balance['Category'] == 'equity']['Balance'].sum()
+    total_assets = trial_balance[(trial_balance['Type'] == 'Balance Sheet')]['Balance'].sum()
+    total_liabilities = trial_balance[(trial_balance['Type'] == 'Balance Sheet') & (trial_balance['Category'].str.contains('liabilities', case=False))]['Balance'].sum()
+    total_equity = trial_balance[(trial_balance['Type'] == 'Balance Sheet') & (trial_balance['Category'].str.contains('equity', case=False))]['Balance'].sum()
 
     return {
         "Income Statement": {
             "Total Revenue": total_revenue,
+            "Other Operating Income": other_operating_income,
+            "Share Of Profit": share_of_profit,
             "Cost of Sales": cost_of_sales,
             "Gross Profit": gross_profit,
             "Operating Expenses": operating_expenses,
-            "Other Income": other_income,
-            "Other Expenses": other_expenses,
+            "Other Operating Expenses": other_operating_expenses,
+            "Finance Expenses": finance_expenses,
             "Net Income": net_income
         },
         "Balance Sheet": {
