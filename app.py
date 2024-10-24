@@ -14,9 +14,15 @@ def generate_financial_statements(trial_balance, mapping):
         how='left'
     )
     
-    # Debug: Show merged data
+    # Debug: Show merged data and its info
     st.write("Merged Data:")
     st.dataframe(merged_data)
+    st.write("Merged Data Info:")
+    st.write(merged_data.info())
+    
+    # Check unique categories
+    st.write("Unique Categories in Merged Data:")
+    st.write(merged_data['Category'].unique())
 
     # Separate Income Statement and Balance Sheet
     income_statement = merged_data[merged_data['Category'] == 'Income']
