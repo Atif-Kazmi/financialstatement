@@ -13,6 +13,10 @@ def generate_financial_statements(trial_balance, mapping):
         on='Account Name', 
         how='left'
     )
+    
+    # Debug: Show merged data
+    st.write("Merged Data:")
+    st.dataframe(merged_data)
 
     # Separate Income Statement and Balance Sheet
     income_statement = merged_data[merged_data['Category'] == 'Income']
@@ -44,10 +48,17 @@ def main():
     if trial_balance_file and mapping_file:
         trial_balance = pd.read_excel(trial_balance_file)
         mapping = pd.read_excel(mapping_file)
-        
+
+        # Debug: Show loaded data
+        st.write("Loaded Trial Balance Data:")
+        st.dataframe(trial_balance)
+
+        st.write("Loaded Mapping Data:")
+        st.dataframe(mapping)
+
         # Generate financial statements
         total_income, total_expenses, net_income, total_assets, total_liabilities, total_equity = generate_financial_statements(trial_balance, mapping)
-        
+
         # Display Income Statement
         st.subheader("Income Statement")
         st.write(f"Total Income: {total_income}")
