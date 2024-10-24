@@ -8,41 +8,57 @@ def generate_financial_statements(trial_balance):
     
     # Calculate totals for the Income Statement
     total_revenue = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'total revenue')]['Balance'].sum()
-    other_operating_income = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating income')]['Balance'].sum()
-    share_of_profit = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'share of profit from associates')]['Balance'].sum()
-    impairment_on_investment = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'impairment on investment in associate -')]['Balance'].sum()
     cost_of_sales = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'cost of sales')]['Balance'].sum()
-    operating_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'manufacturing, selling and administration expenses')]['Balance'].sum()
+    material_cost = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'material cost')]['Balance'].sum()
+    manufacturing_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'manufacturing expenses')]['Balance'].sum()
+    selling_costs = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'selling costs')]['Balance'].sum()
+    advertising_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'advertising and publicity')]['Balance'].sum()
+    carriage_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'carriage and forwarding expense')]['Balance'].sum()
+    administrative_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'administrative expenses')]['Balance'].sum()
+    impairment_loss = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'impairment loss on trade debts')]['Balance'].sum()
+    other_operating_income = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating income')]['Balance'].sum()
     other_operating_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'other operating expenses')]['Balance'].sum()
-    finance_expenses = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'finance expenses')]['Balance'].sum()
-    taxation_pnl = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'taxation & pnl')]['Balance'].sum()
-    taxation_oci = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'taxation - oci')]['Balance'].sum()
+    finance_cost = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'finance cost')]['Balance'].sum()
+    
+    # Calculate gross profit
+    gross_profit = total_revenue - (cost_of_sales + material_cost + manufacturing_expenses)
 
-    gross_profit = total_revenue - cost_of_sales
-    total_expenses = operating_expenses + other_operating_expenses + finance_expenses + taxation_pnl + taxation_oci
-    net_income = gross_profit + other_operating_income + share_of_profit - total_expenses - impairment_on_investment
+    # Total marketing, selling, and distribution costs
+    total_marketing_selling_costs = selling_costs + advertising_expenses + carriage_expenses
 
-    # Calculate totals for the Balance Sheet
-    total_assets = trial_balance[(trial_balance['Type'] == 'Balance Sheet')]['Balance'].sum()
-    total_liabilities = trial_balance[(trial_balance['Type'] == 'Balance Sheet') & (trial_balance['Category'].str.contains('liabilities', case=False))]['Balance'].sum()
-    total_equity = trial_balance[(trial_balance['Type'] == 'Balance Sheet') & (trial_balance['Category'].str.contains('equity', case=False))]['Balance'].sum()
+    # Total expenses before operating profit
+    total_expenses_before_profit = (administrative_expenses + impairment_loss + other_operating_expenses)
+
+    # Calculate net income
+    profit_before_tax = gross_profit - (total_marketing_selling_costs + total_expenses_before_profit + finance_cost)
+
+    # Taxation (dummy values as placeholders, adjust as needed)
+    current_tax = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'current tax')]['Balance'].sum()
+    deferred_tax = trial_balance[(trial_balance['Type'] == 'Income Statement') & (trial_balance['Category'] == 'deferred tax')]['Balance'].sum()
+    
+    profit_after_tax = profit_before_tax - (current_tax + deferred_tax)
 
     return {
         "Income Statement": {
-            "Total Revenue": total_revenue,
-            "Other Operating Income": other_operating_income,
-            "Share Of Profit": share_of_profit,
+            "Net Sales": total_revenue,
             "Cost of Sales": cost_of_sales,
+            "Material Cost": material_cost,
+            "Manufacturing Expenses": manufacturing_expenses,
             "Gross Profit": gross_profit,
-            "Operating Expenses": operating_expenses,
+            "Selling Costs": selling_costs,
+            "Advertising and Publicity": advertising_expenses,
+            "Carriage and Forwarding Expense": carriage_expenses,
+            "Total Marketing, Selling & Distribution Costs": total_marketing_selling_costs,
+            "Administrative Expenses": administrative_expenses,
+            "Impairment Loss on Trade Debts": impairment_loss,
             "Other Operating Expenses": other_operating_expenses,
-            "Finance Expenses": finance_expenses,
-            "Net Income": net_income
-        },
-        "Balance Sheet": {
-            "Total Assets": total_assets,
-            "Total Liabilities": total_liabilities,
-            "Total Equity": total_equity
+            "Other Operating Income": other_operating_income,
+            "Operating Profit / (Loss)": profit_before_tax,
+            "Finance Cost": finance_cost,
+            "Profit / (Loss) Before Income Tax": profit_before_tax,
+            "Current Tax": current_tax,
+            "Deferred Tax": deferred_tax,
+            "Profit / (Loss) After Tax": profit_after_tax
         }
     }
 
@@ -66,12 +82,7 @@ def main():
         # Display Income Statement
         st.subheader("Income Statement")
         for key, value in statements["Income Statement"].items():
-            st.write(f"{key}: {value}")
-
-        # Display Balance Sheet
-        st.subheader("Balance Sheet")
-        for key, value in statements["Balance Sheet"].items():
-            st.write(f"{key}: {value}")
+            st.write(f"{key: <45} {value:,.2f}")
 
 if __name__ == "__main__":
     main()
