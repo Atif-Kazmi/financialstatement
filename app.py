@@ -3,11 +3,14 @@ import streamlit as st
 
 # Function to generate financial statements
 def generate_financial_statements(trial_balance, mapping):
-    # Mapping accounts to financial statement categories
+    # Rename the column to match for merging
     trial_balance = trial_balance.rename(columns={'Account': 'Account Name'})
-    
-    # Merge trial balance with mapping
-    merged_data = pd.merge(trial_balance, mapping, on='Account Name', how='left')
+
+    # Merge trial balance with mapping on 'Account Name'
+    merged_data = pd.merge(trial_balance[['Account Name', 'Balance']], 
+                            mapping[['Account Name', 'Category']], 
+                            on='Account Name', 
+                            how='left')
 
     # Summarize by category
     financial_summary = merged_data.groupby('Category').sum(numeric_only=True).reset_index()
