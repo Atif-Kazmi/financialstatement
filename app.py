@@ -19,23 +19,20 @@ def generate_financial_statements(trial_balance, mapping):
     st.dataframe(merged_data)
     st.write("Merged Data Info:")
     st.write(merged_data.info())
-    
+
     # Check unique categories
     st.write("Unique Categories in Merged Data:")
     st.write(merged_data['Category'].unique())
 
-    # Create a summary DataFrame for specific categories
-    summary = {
-        "Total Revenue": merged_data[merged_data['Category'] == 'Revenue']['Balance'].sum(),
-        "Cost of Sales": merged_data[merged_data['Category'] == 'Cost of Sales']['Balance'].sum(),
-        "Total Income": merged_data[merged_data['Category'] == 'Income']['Balance'].sum(),
-        "Total Expenses": merged_data[merged_data['Category'] == 'Expense']['Balance'].sum(),
-        "Total Assets": merged_data[merged_data['Category'] == 'Asset']['Balance'].sum(),
-        "Total Liabilities": merged_data[merged_data['Category'] == 'Liability']['Balance'].sum(),
-        "Total Equity": merged_data[merged_data['Category'] == 'Equity']['Balance'].sum(),
-    }
+    # Calculate totals for each category
+    totals = merged_data.groupby('Category')['Balance'].sum().reset_index()
+    totals.rename(columns={'Balance': 'Total'}, inplace=True)
     
-    return summary
+    # Show totals in the merged data output
+    st.write("Totals for Each Category:")
+    st.dataframe(totals)
+
+    return merged_data, totals
 
 # Main Streamlit app
 def main():
@@ -57,22 +54,27 @@ def main():
         st.dataframe(mapping)
 
         # Generate financial statements
-        summary = generate_financial_statements(trial_balance, mapping)
+        merged_data, totals = generate_financial_statements(trial_balance, mapping)
 
         # Display Income Statement
         st.subheader("Income Statement")
-        st.write(f"Total Revenue: {summary['Total Revenue']}")
-        st.write(f"Cost of Sales: {summary['Cost of Sales']}")
-        st.write(f"Total Income: {summary['Total Income']}")
-        st.write(f"Total Expenses: {summary['Total Expenses']}")
-        net_income = summary['Total Income'] - summary['Total Expenses']
+        total_income = totals[totals['Category'] == 'Income']['Total'].sum()
+        total_expenses = totals[totals['Category'] == 'Expense']['Total'].sum()
+        net_income = total_income - total_expenses
+
+        st.write(f"Total Income: {total_income}")
+        st.write(f"Total Expenses: {total_expenses}")
         st.write(f"Net Income: {net_income}")
 
         # Display Balance Sheet
         st.subheader("Balance Sheet")
-        st.write(f"Total Assets: {summary['Total Assets']}")
-        st.write(f"Total Liabilities: {summary['Total Liabilities']}")
-        st.write(f"Total Equity: {summary['Total Equity']}")
+        total_assets = totals[totals['Category'] == 'Asset']['Total'].sum()
+        total_liabilities = totals[totals['Category'] == 'Liability']['Total'].sum()
+        total_equity = totals[totals['Category'] == 'Equity']['Total'].sum()
+
+        st.write(f"Total Assets: {total_assets}")
+        st.write(f"Total Liabilities: {total_liabilities}")
+        st.write(f"Total Equity: {total_equity}")
 
 if __name__ == "__main__":
     main()
